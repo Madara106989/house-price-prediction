@@ -1,4 +1,17 @@
+"""
+House Price Prediction using ElasticNet Regression
+
+Workflow:
+1. Handle missing values
+2. Encode categorical features
+3. Scale numerical features
+4. Apply log transformation to the target
+5. Tune ElasticNet using GridSearchCV
+6. Evaluate model performance
+"""
+
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import ElasticNet      #works with combination of ridge and lasso
@@ -29,7 +42,7 @@ df=pd.get_dummies(df,drop_first=True,dtype=int)
 
 #now splting training and scaling
 x=df.drop(["SalePrice","Id"],axis=1)
-y=df["SalePrice"]
+y=np.log(df["SalePrice"])
 x_train,x_test,y_train,y_test=train_test_split(
     x,y,
     random_state=42,
@@ -59,12 +72,28 @@ best_enet=grid.best_estimator_
 print("Best Parameters:", grid.best_params_)
 print("Best CV Score:", grid.best_score_)
 
-train_pred = best_enet.predict(x_train_scaled)
-test_pred = best_enet.predict(x_test_scaled)
+# Predictions in log space
+train_pred_log = best_enet.predict(x_train_scaled)
+test_pred_log = best_enet.predict(x_test_scaled)
 
-print("Train R²:", r2_score(y_train, train_pred))
-print("Test R²:", r2_score(y_test, test_pred))
+# R² in log space
+print("Train R²:", r2_score(y_train, train_pred_log))
+print("Test R²:", r2_score(y_test, test_pred_log))
 
-#checking number of removed features
+# Convert back to original prices
+train_pred = np.exp(train_pred_log)
+test_pred = np.exp(test_pred_log)
+
+y_train_actual = np.exp(y_train)
+y_test_actual = np.exp(y_test)
+
+# Error metrics in original price units
+mae = mean_absolute_error(y_test_actual, test_pred)
+rmse = np.sqrt(mean_squared_error(y_test_actual, test_pred))
+
+print("MAE:", mae)
+print("RMSE:", rmse)
+
+# Feature selection summary
 coef = pd.Series(best_enet.coef_, index=x.columns)
 print("Features removed:", (coef == 0).sum())

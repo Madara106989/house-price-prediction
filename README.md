@@ -4,7 +4,7 @@
 
 This project predicts residential house prices using the **House Prices – Advanced Regression Techniques** dataset from Kaggle.
 
-Rather than focusing only on building a predictive model, the project emphasizes a complete machine learning workflow, including data preprocessing, missing value handling, feature engineering, regularization, hyperparameter tuning, and model evaluation.
+The project demonstrates an end-to-end machine learning workflow, including domain-driven missing value handling, feature engineering, target transformation, regularization, hyperparameter tuning, and model evaluation.
 
 ---
 
@@ -64,7 +64,8 @@ Examples:
 - One-Hot Encoding for categorical variables
 - `drop_first=True` to avoid the Dummy Variable Trap
 - Removed identifier column (`Id`) before training
-
+- Log transformation of the target variable (SalePrice) to reduce right skewness and improve model performance.
+ 
 ---
 
 ### 3. Train-Test Split
@@ -80,23 +81,34 @@ Applied **StandardScaler** after train-test split to prevent data leakage.
 
 ---
 
-### 5. Model Selection
+### 5.Target Transformation
 
-The following regression models were explored during the learning process:
+The target variable ('SalePrice') was highly right-skewed.
+
+A natural logarithm transformation was applied before model training:
+
+SalePrice -> log(SalePrice)
+
+Predictions were converted back to the original price scale using the exponantial function for evaluation.
+
+This reduced the influence of expensive outlier houses and significantly improved model generalization.
+
+---
+
+### 6. Model Selection
+
+Elastic Net was selected as the final model after comparing:
 
 - Linear Regression
 - Ridge Regression
 - Lasso Regression
 - Elastic Net Regression
 
-Elastic Net was selected as the final model because it combines:
-
-- Ridge Regression (reduces multicollinearity)
-- Lasso Regression (performs feature selection)
+ElasticNet produced the best balance between bias and variance while handling multicollinearity and performing automatic feature selection.
 
 ---
 
-### 6. Hyperparameter Tuning
+### 7.Hyperparameter Tuning
 
 Used **GridSearchCV** with 5-fold cross-validation.
 
@@ -107,13 +119,27 @@ Parameters tuned:
 
 ---
 
+### 8. Challenge Faced
+
+During development several practical machine learning challenges were encountered:
+
+- Handling missing values based on feature semantics instead of using a single imputation strategy.
+- Diagnosing multicollinearity using Variance Inflation Factor (VIF).
+- Understanding coefficient shrinkage in Ridge and feature selection in Lasso.
+- Comparing multiple regularized regression models.
+- Improving model performance using logarithmic target transformation.
+
+---
+
 ## Final Model Performance
 
 | Metric | Score |
 |---------|-------|
 | Best Cross Validation R² | 0.802 |
-| Training R² | 0.887 |
-| Testing R² | 0.851 |
+| Training R² | 0.911 |
+| Testing R² | 0.904 |
+| MAE | 16,887 |
+| RMSE | 27,197 |
 | Features Removed | 2 |
 
 ---
@@ -134,6 +160,10 @@ During this project I learned:
 - Elastic Net Regression
 - Hyperparameter tuning using GridSearchCV
 - Model evaluation using R²
+- Target Variable Transformation
+- Log Transformation
+- Inverse Transformation using exp()
+- Understanding skewed distributions
 
 ---
 
@@ -189,8 +219,24 @@ Future versions of this project may include:
 - Random Forest Regressor
 - Gradient Boosting
 - XGBoost
+-LightGBM
+-CatBoost
 - Feature Importance Visualization
 - Model Deployment using Flask or Streamlit
+
+---
+
+## Results Summary
+
+The initial Linear Regression model showed signs of overfitting due to multicollinearity and the skewed target distribution.
+
+By introducing regularization (ElasticNet), hyperparameter tuning, and logarithmic target transformation, the final model achieved:
+
+- Test R²: 0.904
+- MAE: 16,887
+- RMSE: 27,197
+
+while maintaining strong generalization between training and testing datasets.
 
 ---
 
