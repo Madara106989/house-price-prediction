@@ -1,10 +1,20 @@
-# House Price Prediction using Elastic Net Regression
+# House Price Prediction using Ensemble learning
 
 ## Project Overview
 
-This project predicts residential house prices using the **House Prices – Advanced Regression Techniques** dataset from Kaggle.
+This project predicts residential house prices using the House Prices – Advanced Regression Techniques dataset from Kaggle.
 
-The project demonstrates an end-to-end machine learning workflow, including domain-driven missing value handling, feature engineering, target transformation, regularization, hyperparameter tuning, and model evaluation.
+The project demonstrates an end-to-end machine learning workflow including domain-driven missing value handling, feature engineering, preprocessing, model comparison, hyperparameter tuning, and ensemble learning techniques for regression.
+
+---
+
+## Repository Highlights
+
+- ✔ End-to-end regression pipeline
+- ✔ Domain-driven missing value handling
+- ✔ Comparison of linear and ensemble methods
+- ✔ Hyperparameter tuning using GridSearchCV
+- ✔ Final Gradient Boosting model achieving Test R² of 0.915
 
 ---
 
@@ -26,6 +36,7 @@ Predict the **SalePrice** of residential houses based on their structural and ne
 ## Technologies Used
 
 - Python
+- NumPy
 - Pandas
 - Scikit-Learn
 
@@ -64,8 +75,7 @@ Examples:
 - One-Hot Encoding for categorical variables
 - `drop_first=True` to avoid the Dummy Variable Trap
 - Removed identifier column (`Id`) before training
-- Log transformation of the target variable (SalePrice) to reduce right skewness and improve model performance.
- 
+
 ---
 
 ### 3. Train-Test Split
@@ -81,45 +91,41 @@ Applied **StandardScaler** after train-test split to prevent data leakage.
 
 ---
 
-### 5.Target Transformation
+### 5. Model Selection
 
-The target variable ('SalePrice') was highly right-skewed.
-
-A natural logarithm transformation was applied before model training:
-
-SalePrice -> log(SalePrice)
-
-Predictions were converted back to the original price scale using the exponantial function for evaluation.
-
-This reduced the influence of expensive outlier houses and significantly improved model generalization.
-
----
-
-### 6. Model Selection
-
-Elastic Net was selected as the final model after comparing:
+The following models were explored during experimentation:
 
 - Linear Regression
 - Ridge Regression
 - Lasso Regression
 - Elastic Net Regression
+- Decision Tree Regressor
+- Random Forest Regressor
+- Gradient Boosting Regressor
 
-ElasticNet produced the best balance between bias and variance while handling multicollinearity and performing automatic feature selection.
+After comparing performance across models, Gradient Boosting Regressor achieved the best test performance and was selected as the final model.
 
 ---
 
-### 7.Hyperparameter Tuning
+### 6. Hyperparameter Tuning
 
-Used **GridSearchCV** with 5-fold cross-validation.
+GridSearchCV with 5-fold cross-validation was used for hyperparameter optimization.
 
-Parameters tuned:
+Examples of tuned parameters:
 
+Elastic Net:
 - alpha
 - l1_ratio
 
+Gradient Boosting:
+- learning_rate
+- n_estimators
+- max_depth
+- subsample
+
 ---
 
-### 8. Challenge Faced
+### 7. Challenges Faced
 
 During development several practical machine learning challenges were encountered:
 
@@ -127,20 +133,33 @@ During development several practical machine learning challenges were encountere
 - Diagnosing multicollinearity using Variance Inflation Factor (VIF).
 - Understanding coefficient shrinkage in Ridge and feature selection in Lasso.
 - Comparing multiple regularized regression models.
-- Improving model performance using logarithmic target transformation.
+- Experimenting with logarithmic target transformation and evaluating its impact on model performance.
+- Understanding the bias-variance tradeoff in tree-based ensemble methods.
+- Comparing linear and nonlinear models for tabular data.
+
+---
+
+## Model Comparison
+
+| Model | Train R² | Test R² |
+|-------|----------:|---------:|
+| Elastic Net | 0.887 | 0.851 |
+| Decision Tree | 0.875 | 0.804 |
+| Random Forest | 0.970 | 0.892 |
+| Gradient Boosting | 0.999 | 0.915 |
+
+Gradient Boosting achieved the best performance and was selected as the final model.
 
 ---
 
 ## Final Model Performance
 
 | Metric | Score |
-|---------|-------|
-| Best Cross Validation R² | 0.802 |
-| Training R² | 0.911 |
-| Testing R² | 0.904 |
-| MAE | 16,887 |
-| RMSE | 27,197 |
-| Features Removed | 2 |
+|---------|-------:|
+| Training R² | 0.9994 |
+| Testing R² | 0.9154 |
+| MAE | 16,004 |
+| RMSE | 25,477 |
 
 ---
 
@@ -162,8 +181,14 @@ During this project I learned:
 - Model evaluation using R²
 - Target Variable Transformation
 - Log Transformation
-- Inverse Transformation using exp()
 - Understanding skewed distributions
+- Decision Trees
+- Bagging
+- Random Forest
+- Gradient Boosting
+- Ensemble Learning
+- Bias-Variance Tradeoff
+- Cross Validation
 
 ---
 
@@ -188,7 +213,7 @@ House-Price-Prediction/
 Clone the repository
 
 ```bash
-git clone https://github.com/your-username/house-price-prediction.git
+git clone https://github.com/Madara106989/house-price-prediction.git
 ```
 
 Move into the project folder
@@ -215,28 +240,37 @@ python house_price_prediction.py
 
 Future versions of this project may include:
 
-- Decision Tree Regressor
-- Random Forest Regressor
-- Gradient Boosting
 - XGBoost
--LightGBM
--CatBoost
+- LightGBM
+- CatBoost
 - Feature Importance Visualization
+- Model Explainability using SHAP
 - Model Deployment using Flask or Streamlit
 
 ---
 
 ## Results Summary
 
-The initial Linear Regression model showed signs of overfitting due to multicollinearity and the skewed target distribution.
+Multiple regression and ensemble models were explored and objectively compared throughout this project.
 
-By introducing regularization (ElasticNet), hyperparameter tuning, and logarithmic target transformation, the final model achieved:
+Among all models, Gradient Boosting Regressor achieved the best performance:
 
-- Test R²: 0.904
-- MAE: 16,887
-- RMSE: 27,197
+- Training R²: 0.9994
+- Testing R²: 0.9154
+- MAE: 16,004
+- RMSE: 25,477
 
-while maintaining strong generalization between training and testing datasets.
+The project demonstrates how systematic preprocessing, feature engineering, hyperparameter tuning, and ensemble learning can significantly improve predictive performance on structured tabular datasets.
+
+---
+
+## Key Takeaways
+
+- Started with simple linear models and established a baseline.
+- Explored regularization techniques to handle multicollinearity.
+- Investigated tree-based methods and ensemble learning.
+- Compared multiple algorithms objectively using train and test metrics.
+- Selected the final model based on generalization performance rather than training accuracy.
 
 ---
 

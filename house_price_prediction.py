@@ -1,25 +1,24 @@
 """
-House Price Prediction using ElasticNet Regression
+House Price Prediction using Ensemble Learning
 
 Workflow:
 1. Handle missing values
 2. Encode categorical features
-3. Scale numerical features
-4. Apply log transformation to the target
-5. Tune ElasticNet using GridSearchCV
-6. Evaluate model performance
+3. Split data into training and testing sets
+4. Train a Gradient Boosting Regressor
+5. Evaluate model performance using R², MAE, and RMSE
 """
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split,GridSearchCV
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import ElasticNet      #works with combination of ridge and lasso
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import(r2_score,mean_absolute_error,mean_squared_error)
 
 df=pd.read_csv("data/train.csv")
 
 #filing nan missing values with none 
+
 no_feature=[
     "PoolQC",
     "Alley",
@@ -37,63 +36,50 @@ df["LotFrontage"]=df["LotFrontage"].fillna(df["LotFrontage"].median())
 df["MasVnrArea"]=df["MasVnrArea"].fillna(0)
 df["GarageYrBlt"]=df["GarageYrBlt"].fillna(0)
 
-#one hot encoding 
+#one hot encode categorical features
+
 df=pd.get_dummies(df,drop_first=True,dtype=int)
 
-#now splting training and scaling
+# Split freatures and target
+
 x=df.drop(["SalePrice","Id"],axis=1)
-y=np.log(df["SalePrice"])
+y=df["SalePrice"]
+
 x_train,x_test,y_train,y_test=train_test_split(
     x,y,
     random_state=42,
     test_size=0.2
 )
 
-#scaling
-scaler=StandardScaler()
-x_train_scaled=scaler.fit_transform(x_train)
-x_test_scaled=scaler.transform(x_test)
+# Train Gradient Boosting model
 
-#now implementing elastic net as it uses both ridge and lasso by tuning and eliminating the coefficient
-enet=ElasticNet(random_state=42,max_iter=10000)
-param_grid={
-    "alpha":[0.001,0.01,0.1,1,10,100],
-    "l1_ratio": [0.2, 0.4, 0.6, 0.8, 1.0]
-}
-grid=GridSearchCV(
-    estimator=enet,
-    param_grid=param_grid,
-    cv=5,
-    scoring="r2"
+# Best parameters obtained throught experimentation and tuning
+gbr=GradientBoostingRegressor(
+    random_state=42,
+    n_estimators=500,
+    max_depth=4,
+    learning_rate=0.1,
+    subsample=0.8
 )
-grid.fit(x_train_scaled,y_train)
-best_enet=grid.best_estimator_
 
-print("Best Parameters:", grid.best_params_)
-print("Best CV Score:", grid.best_score_)
+gbr.fit(x_train,y_train)
 
-# Predictions in log space
-train_pred_log = best_enet.predict(x_train_scaled)
-test_pred_log = best_enet.predict(x_test_scaled)
+#Generate predictions
 
-# R² in log space
-print("Train R²:", r2_score(y_train, train_pred_log))
-print("Test R²:", r2_score(y_test, test_pred_log))
+train_pred=gbr.predict(x_train)
+test_pred=gbr.predict(x_test)
 
-# Convert back to original prices
-train_pred = np.exp(train_pred_log)
-test_pred = np.exp(test_pred_log)
+# Evaluate model
 
-y_train_actual = np.exp(y_train)
-y_test_actual = np.exp(y_test)
+mae=mean_absolute_error(y_test,test_pred)
+mse=mean_squared_error(y_test,test_pred)
+rmse=np.sqrt(mse)
 
-# Error metrics in original price units
-mae = mean_absolute_error(y_test_actual, test_pred)
-rmse = np.sqrt(mean_squared_error(y_test_actual, test_pred))
+train_r2 = r2_score(y_train, train_pred)
+test_r2 = r2_score(y_test, test_pred)
 
-print("MAE:", mae)
-print("RMSE:", rmse)
-
-# Feature selection summary
-coef = pd.Series(best_enet.coef_, index=x.columns)
-print("Features removed:", (coef == 0).sum())
+print(f"Train R² Score: {train_r2:.4f}")
+print(f"Test R² Score: {test_r2:.4f}")
+print(f"MAE: {mae:.2f}")
+print(f"MSE: {mse:.2f}")
+print(f"RMSE: {rmse:.2f}")
